@@ -1,0 +1,77 @@
+type Todo {
+  id: Int
+  title: String
+  is_completed: Boolean
+  # is_public: Boolean
+  created_at: String
+  createdUser: User
+  project: Project
+  assignee: User
+}
+
+type Project {
+  id: Int
+  name: String
+  manager: User
+  members: [User]
+  todos: [Todo]
+}
+
+type User {
+  id: ID
+  name: String
+  password: String
+  created_at: String
+  last_seen: String
+  projects: [Project]
+  todos: [Todo]
+  assigedTodos: [Todo]
+}
+
+type Query {
+  todos: [Todo]
+  todoById(id: Int): Todo
+}
+
+extend type Query {
+  profile: User
+}
+
+extend type Query {
+  projectById(projectId: Int): Project
+}
+
+type Mutation {
+	addTodo(todo: TodoInput): Todo
+	deleteTodo(id: Int): Todo
+	assignTodoProject(todoId: Int, projectId:Int): Todo
+	assignTodoToMember(todoId: Int, userId: String): Todo
+	markDone(todoId: Int, value: Boolean): Todo
+}
+
+extend type Mutation {
+	login(user: String, password: String): LoginResponse
+	register(id:String, name: String, password:String): RegisterResponse
+}
+
+extend type Mutation {
+	createProject(name: String): Project
+	addMember(userId: String, projectId:Int): Project
+}
+
+type LoginResponse {
+	user: User
+	success: Boolean
+	token:String
+}
+
+type RegisterResponse {
+	user: User
+	success: Boolean
+}
+
+
+input TodoInput {
+  title: String
+  projectId: Int
+}
