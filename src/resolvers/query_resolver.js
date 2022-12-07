@@ -1,5 +1,6 @@
 const { findProjectById } = require("../service/project_service");
 const { getTodosByUserId, getTodoById } = require("../service/todo_service");
+const { findUser } = require("../service/user_service");
 const { print, extractUserId } = require("../utils/utils");
 
 module.exports = {
@@ -9,8 +10,10 @@ module.exports = {
   todoById: (_, { id }, { headers }) => {
     return getTodoById(id, extractUserId(headers));
   },
-  projectById: (parent, { projectId }, { headers }) => {
-    print(parent);
+  projectById: (_, { projectId }, { headers }) => {
     return findProjectById(projectId, extractUserId(headers));
+  },
+  profile: (paren, params, { headers }) => {
+    return findUser(extractUserId(headers));
   },
 };

@@ -23,8 +23,8 @@ const requireOwnerTodo = async (userId, todoId) => {
 
 const requireMemberOfProject = async (userId, projectId) => {
   const result = await sql`SELECT 1 FROM users_projects up WHERE up.user_id=${userId} AND up.project_id=${projectId}`;
-  if (result.length !== 0) {
-    throw new GraphQLError("You are not the member of this project");
+  if (result.length === 0) {
+    throw new GraphQLError(`You are not the member of this project userId=${userId} projectId=${projectId}`);
   }
 };
 

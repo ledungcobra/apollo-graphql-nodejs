@@ -28,11 +28,12 @@ const _login = async (_, { user, password }) => {
 
 module.exports = {
   login: _login,
-  addTodo: (_, { todo }, { headers }) =>
-    insertTodo({
+  addTodo: (a, { todo }, { headers }) => {
+    return insertTodo({
       ...todo,
       created_user_id: extractUserId(headers),
-    }),
+    });
+  },
   deleteTodo: (_, { id }, { headers }) => deleteTodo(id, extractUserId(headers)),
   assignTodoProject: (_, { todoId, projectId }, { headers }) => assignTodoProject(todoId, projectId, extractUserId(headers)),
   assignTodoToMember: (_, { todoId, userId }, { headers }) => assignTodoToMember(todoId, userId, extractUserId(headers)),

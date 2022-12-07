@@ -34,7 +34,7 @@ const findTodosByUserId = (userId) => {
 };
 
 const findAssignedTodos = (userId) => {
-  return sql`SELECT t.* FROM todos t WHERE t.assignee_id=${userId} `;
+  return sql`SELECT t.* FROM todos t WHERE t.assignee=${userId} `;
 };
 
 const updateUserLastSeen = (userId) => {

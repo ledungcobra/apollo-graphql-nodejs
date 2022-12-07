@@ -1,4 +1,4 @@
-const { findProjects, findTodosByUserId } = require("../service/user_service");
+const { findProjects, findTodosByUserId, findAssignedTodos } = require("../service/user_service");
 const { print } = require("../utils/utils");
 
 module.exports = {

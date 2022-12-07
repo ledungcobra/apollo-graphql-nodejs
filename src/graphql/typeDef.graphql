@@ -75,3 +75,23 @@ input TodoInput {
   title: String
   projectId: Int
 }
+
+
+type Subscription {
+	notification: Notification
+	test: String
+}
+
+enum Action {
+	CREATED
+	DELETED
+	UPDATED
+}
+
+type Notification {
+	idString: String
+	idInt: String
+	action: Action
+	message: String
+}
+
