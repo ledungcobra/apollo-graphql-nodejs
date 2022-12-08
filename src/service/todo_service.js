@@ -1,4 +1,5 @@
 const { GraphQLError } = require("graphql");
+const { pubSub } = require("../listeners/db_listeners");
 const { print } = require("../utils/utils");
 const { sql, requireProjectOwner, requireMemberOfProject } = require("./base_service");
 
@@ -25,10 +26,14 @@ const getTodoById = async (id, userId) => {
 };
 
 const insertTodo = async (todo) => {
-  const result = await sql`INSERT INTO todos(title, created_user_id, project_id) 
-                          VALUES(${todo.title}, ${todo.created_user_id ?? null},${todo.projectId ?? null}) RETURNING *`;
-
-  return result[0];
+  const [result] = await sql`INSERT INTO todos(title, created_user_id, project_id, assignee) 
+                          VALUES(${todo.title}, ${todo.created_user_id ?? null},${todo.projectId ?? null},${
+    todo.created_user_id ?? null
+  }) RETURNING *`;
+  pubSub.publish("INSERTED_TODO", {
+    test: "Test " + result.id.toString(),
+  });
+  return result;
 };
 
 const deleteTodo = async (id, requestUserId) => {

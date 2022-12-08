@@ -9,7 +9,6 @@ const httpServer = createServer(app);
 const cors = require("cors");
 
 const { ApolloServer } = require("@apollo/server");
-const { startStandaloneServer } = require("@apollo/server/standalone");
 
 const todoResolver = require("./resolvers/todo_resolver");
 const projectResolver = require("./resolvers/project_resolver");
@@ -18,10 +17,12 @@ const queryResolver = require("./resolvers/query_resolver");
 const mutationResolver = require("./resolvers/mutation_resolver");
 const subscriptionResolver = require("./resolvers/subscription_resolver");
 
-const { readAllText, print } = require("./utils/utils");
+const { readAllText, print, extractUserId, verifyToken } = require("./utils/utils");
 const { makeExecutableSchema } = require("@graphql-tools/schema");
 const bodyParser = require("body-parser");
 const { listenToDbEvent } = require("./listeners/db_listeners");
+const { GraphQLError } = require("graphql");
+const { findUser } = require("./service/user_service");
 const PORT = process.env.PORT || 3000;
 const typeString = readAllText("/graphql/typeDef.graphql");
 const typeDefs = typeString;
@@ -45,7 +46,29 @@ const wsServer = new WebSocketServer({
   path: "/graphql",
 });
 
-const serverCleanup = useServer({ schema }, wsServer);
+const serverCleanup = useServer(
+  {
+    schema,
+    onConnect: () => {
+      print("Connected");
+    },
+    context: async (ctx) => {
+      if (!ctx.connectionParams) {
+        return;
+      }
+      const authToken = ctx.connectionParams["Authorization"];
+      if (!authToken) {
+        return;
+      }
+      const data = verifyToken(authToken);
+      if (data.error) {
+        throw new GraphQLError("Invalid jwt token: " + data.message);
+      }
+      return await findUser(data.data.id);
+    },
+  },
+  wsServer
+);
 
 const server = new ApolloServer({
   schema,
@@ -64,7 +87,14 @@ const server = new ApolloServer({
   ],
 });
 server.start().then(() => {
-  app.use("/graphql", cors(), bodyParser.json(), expressMiddleware(server, { context: (ctx) => ({ headers: ctx.req.headers }) }));
+  app.use(
+    "/graphql",
+    cors(),
+    bodyParser.json(),
+    expressMiddleware(server, {
+      context: (ctx) => ({ headers: ctx.req.headers }),
+    })
+  );
   httpServer.listen(PORT, () => {
     print("Listening at port " + PORT);
   });

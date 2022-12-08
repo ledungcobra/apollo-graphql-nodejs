@@ -79,7 +79,7 @@ input TodoInput {
 
 type Subscription {
 	notification: Notification
-	test: String
+	test(auth:String): String
 }
 
 enum Action {
