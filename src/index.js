@@ -23,7 +23,7 @@ const bodyParser = require("body-parser");
 const { listenToDbEvent } = require("./listeners/db_listeners");
 const { GraphQLError } = require("graphql");
 const { findUser } = require("./service/user_service");
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const typeString = readAllText("/graphql/typeDef.graphql");
 const typeDefs = typeString;
 
@@ -44,6 +44,7 @@ const wsServer = new WebSocketServer({
   // Pass a different path here if app.use
   // serves expressMiddleware at a different path
   path: "/graphql",
+  handleProtocols: "graphql-ws",
 });
 
 const serverCleanup = useServer(
@@ -51,6 +52,9 @@ const serverCleanup = useServer(
     schema,
     onConnect: () => {
       print("Connected");
+    },
+    onDisconnect: () => {
+      print("Disconnect");
     },
     context: async (ctx) => {
       if (!ctx.connectionParams) {
@@ -76,7 +80,6 @@ const server = new ApolloServer({
     ApolloServerPluginDrainHttpServer({ httpServer }),
     {
       async serverWillStart() {
-        print("Server will start");
         return {
           async drainServer() {
             await serverCleanup.dispose();
@@ -85,6 +88,12 @@ const server = new ApolloServer({
       },
     },
   ],
+  subscriptions: {
+    path: "/graphql",
+    keepAlive: 100000,
+    onConnect: () => console.log("connected"),
+    onDisconnect: () => console.log("disconnected"),
+  },
 });
 server.start().then(() => {
   app.use(
