@@ -37,5 +37,7 @@ const extractUserId = (headers) => {
   }
   return result.data.id;
 };
+
+
 const print = console.log;
 module.exports = { generateToken, verifyToken, print, readAllText, extractUserId };

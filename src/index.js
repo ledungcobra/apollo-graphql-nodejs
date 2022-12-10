@@ -11,36 +11,43 @@ const { ApolloServer } = require("@apollo/server");
 const { readAllText, print, extractUserId, verifyToken } = require("./utils/utils");
 const { makeExecutableSchema } = require("@graphql-tools/schema");
 const bodyParser = require("body-parser");
-const { execute, subscribe } = require("graphql");
+const { execute, subscribe, GraphQLError } = require("graphql");
 const { findUser } = require("./service/user_service");
 const { GRAPHQL_WS, SubscriptionServer } = require("subscriptions-transport-ws");
 const { GRAPHQL_TRANSPORT_WS_PROTOCOL } = require("graphql-ws");
 const PORT = process.env.PORT || 5000;
 const resolvers = require("./resolvers/index");
 
-const typeString = readAllText("/graphql/typeDef.graphql");
-const typeDefs = typeString;
+const typeDefs = readAllText("/graphql/typeDef.graphql");
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const graphqlWs = new ws.Server({ noServer: true });
-const cleanup = useServer({ schema }, graphqlWs);
-
-const subTransWs = new ws.Server({ noServer: true });
-const subServer = SubscriptionServer.create(
+const cleanup = useServer(
   {
     schema,
-    onConnect: (...x) => {
-      print("Connected");
+  },
+  graphqlWs
+);
+
+const subTransWs = new ws.Server({ noServer: true });
+SubscriptionServer.create(
+  {
+    schema,
+    onConnect: (_, socket, incommingReq) => {
+      const rawHeaders = incommingReq.request.rawHeaders;
+      const authIndex = rawHeaders.indexOf("authorization");
+      const token = rawHeaders[authIndex + 1].toString();
+      return findUser(
+        extractUserId({
+          authorization: token,
+        })
+      );
     },
-    onDisconnect: (...x) => {
+    onDisconnect: () => {
       print("On Disconnected");
     },
-    execute: (args) => {
-      return execute(args);
-    },
-    subscribe: (args) => {
-      return subscribe(args);
-    },
+    execute,
+    subscribe,
     keepAlive: 100000,
   },
   subTransWs
@@ -51,7 +58,8 @@ const httpServer = createServer(app);
 httpServer.on("upgrade", (req, socket, head) => {
   const protocol = req.headers["sec-websocket-protocol"];
   const protocols = Array.isArray(protocol) ? protocol : protocol?.split(",").map((p) => p.trim());
-
+  const auth = req.headers["authorization"];
+  // print("Auth " + auth);
   const wss = protocols?.includes(GRAPHQL_WS) && !protocols.includes(GRAPHQL_TRANSPORT_WS_PROTOCOL) ? subTransWs : graphqlWs;
   wss.handleUpgrade(req, socket, head, (ws) => {
     wss.emit("connection", ws, req);
