@@ -14,4 +14,14 @@ module.exports = {
       }
     ),
   },
+  countdown: {
+    subscribe: async function* (_, { from }, user) {
+      print(user);
+      for (let i = from; i >= 0; i--) {
+        print("Count down " + i);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        yield { countdown: i };
+      }
+    },
+  },
 };
