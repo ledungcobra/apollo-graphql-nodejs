@@ -2,76 +2,62 @@ require("dotenv").config();
 const { createServer } = require("http");
 const { ApolloServerPluginDrainHttpServer } = require("@apollo/server/plugin/drainHttpServer");
 const { expressMiddleware } = require("@apollo/server/express4");
-const { WebSocketServer } = require("ws");
 const { useServer } = require("graphql-ws/lib/use/ws");
 const app = require("express")();
-const httpServer = createServer(app);
 const cors = require("cors");
-
+const ws = require("ws");
 const { ApolloServer } = require("@apollo/server");
-
-const todoResolver = require("./resolvers/todo_resolver");
-const projectResolver = require("./resolvers/project_resolver");
-const userResolver = require("./resolvers/user_resolver");
-const queryResolver = require("./resolvers/query_resolver");
-const mutationResolver = require("./resolvers/mutation_resolver");
-const subscriptionResolver = require("./resolvers/subscription_resolver");
 
 const { readAllText, print, extractUserId, verifyToken } = require("./utils/utils");
 const { makeExecutableSchema } = require("@graphql-tools/schema");
 const bodyParser = require("body-parser");
-const { listenToDbEvent } = require("./listeners/db_listeners");
-const { GraphQLError } = require("graphql");
+const { execute, subscribe } = require("graphql");
 const { findUser } = require("./service/user_service");
+const { GRAPHQL_WS, SubscriptionServer } = require("subscriptions-transport-ws");
+const { GRAPHQL_TRANSPORT_WS_PROTOCOL } = require("graphql-ws");
 const PORT = process.env.PORT || 5000;
+const resolvers = require("./resolvers/index");
+
 const typeString = readAllText("/graphql/typeDef.graphql");
 const typeDefs = typeString;
 
-const resolvers = {
-  Todo: todoResolver,
-  Project: projectResolver,
-  User: userResolver,
-  Query: queryResolver,
-  Mutation: mutationResolver,
-  Subscription: subscriptionResolver,
-};
-
 const schema = makeExecutableSchema({ typeDefs, resolvers });
+const graphqlWs = new ws.Server({ noServer: true });
+const cleanup = useServer({ schema }, graphqlWs);
 
-const wsServer = new WebSocketServer({
-  // This is the `httpServer` we created in a previous step.
-  server: httpServer,
-  // Pass a different path here if app.use
-  // serves expressMiddleware at a different path
-  path: "/graphql",
-});
-
-const serverCleanup = useServer(
+const subTransWs = new ws.Server({ noServer: true });
+const subServer = SubscriptionServer.create(
   {
     schema,
-    onConnect: () => {
+    onConnect: (...x) => {
       print("Connected");
     },
-    onDisconnect: () => {
-      print("Disconnect");
+    onDisconnect: (...x) => {
+      print("On Disconnected");
     },
-    context: async (ctx) => {
-      if (!ctx.connectionParams) {
-        return;
-      }
-      const authToken = ctx.connectionParams["Authorization"];
-      if (!authToken) {
-        return;
-      }
-      const data = verifyToken(authToken);
-      if (data.error) {
-        throw new GraphQLError("Invalid jwt token: " + data.message);
-      }
-      return await findUser(data.data.id);
+    execute: (args) => {
+      return execute(args);
     },
+    subscribe: (args) => {
+      return subscribe(args);
+    },
+    keepAlive: 100000,
   },
-  wsServer
+  subTransWs
 );
+
+const httpServer = createServer(app);
+
+httpServer.on("upgrade", (req, socket, head) => {
+  // extract websocket subprotocol from header
+  const protocol = req.headers["sec-websocket-protocol"];
+  const protocols = Array.isArray(protocol) ? protocol : protocol?.split(",").map((p) => p.trim());
+
+  const wss = protocols?.includes(GRAPHQL_WS) && !protocols.includes(GRAPHQL_TRANSPORT_WS_PROTOCOL) ? subTransWs : graphqlWs;
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    wss.emit("connection", ws, req);
+  });
+});
 
 const server = new ApolloServer({
   schema,
@@ -81,13 +67,14 @@ const server = new ApolloServer({
       async serverWillStart() {
         return {
           async drainServer() {
-            await serverCleanup.dispose();
+            await cleanup.dispose();
           },
         };
       },
     },
   ],
 });
+
 server.start().then(() => {
   app.use(
     "/graphql",
@@ -100,6 +87,4 @@ server.start().then(() => {
   httpServer.listen(PORT, () => {
     print("Listening at port " + PORT);
   });
-
-  listenToDbEvent();
 });

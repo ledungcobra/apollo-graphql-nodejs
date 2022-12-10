@@ -42,56 +42,54 @@ extend type Query {
 }
 
 type Mutation {
-	addTodo(todo: TodoInput): Todo
-	deleteTodo(id: Int): Todo
-	assignTodoProject(todoId: Int, projectId:Int): Todo
-	assignTodoToMember(todoId: Int, userId: String): Todo
-	markDone(todoId: Int, value: Boolean): Todo
+  addTodo(todo: TodoInput): Todo
+  deleteTodo(id: Int): Todo
+  assignTodoProject(todoId: Int, projectId: Int): Todo
+  assignTodoToMember(todoId: Int, userId: String): Todo
+  markDone(todoId: Int, value: Boolean): Todo
 }
 
 extend type Mutation {
-	login(user: String, password: String): LoginResponse
-	register(id:String, name: String, password:String): RegisterResponse
+  login(user: String, password: String): LoginResponse
+  register(id: String, name: String, password: String): RegisterResponse
 }
 
 extend type Mutation {
-	createProject(name: String): Project
-	addMember(userId: String, projectId:Int): Project
+  createProject(name: String): Project
+  addMember(userId: String, projectId: Int): Project
 }
 
 type LoginResponse {
-	user: User
-	success: Boolean
-	token:String
+  user: User
+  success: Boolean
+  token: String
 }
 
 type RegisterResponse {
-	user: User
-	success: Boolean
+  user: User
+  success: Boolean
 }
-
 
 input TodoInput {
   title: String
   projectId: Int
 }
 
-
 type Subscription {
-	notification: Notification
-	test(auth:String): String
+  notification: Notification
+  test(auth: String): String
+  countdown(from: Int!): Int
 }
 
 enum Action {
-	CREATED
-	DELETED
-	UPDATED
+  CREATED
+  DELETED
+  UPDATED
 }
 
 type Notification {
-	idString: String
-	idInt: String
-	action: Action
-	message: String
+  idString: String
+  idInt: String
+  action: Action
+  message: String
 }
-
