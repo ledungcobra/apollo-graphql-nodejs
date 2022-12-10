@@ -78,7 +78,7 @@ input TodoInput {
 type Subscription {
   notification: Notification
   test(auth: String): String
-  countdown(from: Int): Int
+  countdown(from: Int!): Int
 }
 
 enum Action {
