@@ -44,7 +44,6 @@ const wsServer = new WebSocketServer({
   // Pass a different path here if app.use
   // serves expressMiddleware at a different path
   path: "/graphql",
-  handleProtocols: "graphql-ws",
 });
 
 const serverCleanup = useServer(
@@ -88,12 +87,6 @@ const server = new ApolloServer({
       },
     },
   ],
-  subscriptions: {
-    path: "/graphql",
-    keepAlive: 100000,
-    onConnect: () => console.log("connected"),
-    onDisconnect: () => console.log("disconnected"),
-  },
 });
 server.start().then(() => {
   app.use(

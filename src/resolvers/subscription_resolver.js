@@ -6,12 +6,11 @@ module.exports = {
   test: {
     subscribe: withFilter(
       (...x) => {
-        // print(x);
+        print("Subscribe");
         return pubSub.asyncIterator(["INSERTED_TODO"]);
       },
       (payload, { auth }, context, info, rest) => {
-        print(context);
-        return !!auth;
+        return true;
       }
     ),
   },
