@@ -49,7 +49,6 @@ const subServer = SubscriptionServer.create(
 const httpServer = createServer(app);
 
 httpServer.on("upgrade", (req, socket, head) => {
-  // extract websocket subprotocol from header
   const protocol = req.headers["sec-websocket-protocol"];
   const protocols = Array.isArray(protocol) ? protocol : protocol?.split(",").map((p) => p.trim());
 
