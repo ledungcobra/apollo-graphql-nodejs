@@ -2,7 +2,6 @@ type Todo {
   id: Int
   title: String
   is_completed: Boolean
-  # is_public: Boolean
   created_at: String
   createdUser: User
   project: Project
@@ -39,6 +38,7 @@ extend type Query {
 
 extend type Query {
   projectById(projectId: Int): Project
+  projects: [Project!]!
 }
 
 type Mutation {
@@ -57,6 +57,7 @@ extend type Mutation {
 extend type Mutation {
   createProject(name: String): Project
   addMember(userId: String, projectId: Int): Project
+  removeMember(userId: String, projectId: Int): User
 }
 
 type LoginResponse {
@@ -76,20 +77,22 @@ input TodoInput {
 }
 
 type Subscription {
-  notification: Notification
   test(auth: String): String
   countdown(from: Int!): Int
+  todoNotification: TodoNotification
 }
 
 enum Action {
   CREATED
   DELETED
   UPDATED
+  ASSIGN_PROJECT
+  ASSIGN_MEMBER
+  DONE
 }
 
-type Notification {
-  idString: String
-  idInt: String
+type TodoNotification {
   action: Action
-  message: String
+  payload: Todo
+  userId: ID
 }

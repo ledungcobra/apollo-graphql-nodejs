@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const { GraphQLError } = require("graphql");
 const { print, extractUserId, generateToken } = require("../utils/utils");
 const { insertTodo, deleteTodo, assignTodoProject, assignTodoToMember, markDone } = require("../service/todo_service");
-const { createProject, addMember } = require("../service/project_service");
+const { createProject, addMember, removeMember } = require("../service/project_service");
 
 const _login = async (_, { user, password }) => {
   const foundUser = await findUser(user);
@@ -40,5 +40,6 @@ module.exports = {
   register: (_, { id, name, password }) => register(id, name, password),
   createProject: (_, { name }, { headers }) => createProject(name, extractUserId(headers)),
   addMember: (_, { userId, projectId }, { headers }) => addMember(userId, projectId, extractUserId(headers)),
+  removeMember: (_, { userId, projectId }, { headers }) => removeMember(userId, projectId, extractUserId(headers)),
   markDone: (_, { todoId, value }, { headers }) => markDone(todoId, value, extractUserId(headers)),
 };

@@ -4,7 +4,7 @@ const { print, extractUserId } = require("../utils/utils");
 
 module.exports = {
   createdUser: (todo) => {
-    return findViewUser(parent.created_user_id);
+    return findViewUser(todo.created_user_id);
   },
   project: (todo, _, { headers }) => {
     return findProjectById(todo.project_id, extractUserId(headers));

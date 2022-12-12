@@ -19,6 +19,19 @@ const findUser = async (userId) => {
   return res[0];
 };
 
+const findUserWithProjectId = async (userId) => {
+  const res = await sql`SELECT u.*, up.project_id FROM users u left join users_projects up on u.id=up.user_id WHERE u.id = ${userId}`;
+  if (res.length === 0) {
+    return null;
+  }
+  const first = res[0];
+  first.projectIds = [];
+  for (let user of res) {
+    first.projectIds.push(user.project_id);
+  }
+  return first;
+};
+
 const findProjects = (userId) => {
   return sql`SELECT p.* from projects p JOIN users_projects up on p.id=up.project_id 
               WHERE up.user_id=${userId}
@@ -54,4 +67,13 @@ const register = async (id, name, password) => {
   return { success: true, user: result[0] };
 };
 
-module.exports = { findViewUser, findProjects, findTodosByUserId, findAssignedTodos, findUser, updateUserLastSeen, register };
+module.exports = {
+  findViewUser,
+  findProjects,
+  findTodosByUserId,
+  findAssignedTodos,
+  findUser,
+  updateUserLastSeen,
+  register,
+  findUserWithProjectId,
+};

@@ -1,5 +1,6 @@
 const { GraphQLError } = require("graphql");
-const { pubSub } = require("../listeners/db_listeners");
+const { INSERT_TODO, DELETE_TODO, ASSIGN_PRJECT_TODO, ASSIGN_MEMBER_TODO, DONE_TODO } = require("../pubsub/actions");
+const pubSub = require("../pubsub/index");
 const { print } = require("../utils/utils");
 const { sql, requireProjectOwner, requireMemberOfProject } = require("./base_service");
 
@@ -30,8 +31,11 @@ const insertTodo = async (todo) => {
                           VALUES(${todo.title}, ${todo.created_user_id ?? null},${todo.projectId ?? null},${
     todo.created_user_id ?? null
   }) RETURNING *`;
-  pubSub.publish("INSERTED_TODO", {
-    test: "Test " + result.id.toString(),
+  pubSub.publish(INSERT_TODO, {
+    todoNotification: {
+      action: INSERT_TODO,
+      payload: result,
+    },
   });
   return result;
 };
@@ -46,6 +50,12 @@ const deleteTodo = async (id, requestUserId) => {
                                             WHERE p.id=t.project_id AND p.manager_id=${requestUserId}
                                           )
                                   )`;
+  pubSub.publish(DELETE_TODO, {
+    todoNotification: {
+      action: DELETE_TODO,
+      payload: todo,
+    },
+  });
   return todo;
 };
 
@@ -61,6 +71,12 @@ const assignTodoProject = async (todoId, projectId, requestUserId) => {
   }
   const result = await sql` SELECT * FROM todos t 
                             WHERE t.id=${todoId}`;
+  pubSub.publish(ASSIGN_PRJECT_TODO, {
+    todoNotification: {
+      action: ASSIGN_PRJECT_TODO,
+      payload: result[0],
+    },
+  });
   return result[0];
 };
 
@@ -71,12 +87,20 @@ const assignTodoToMember = async (todoId, userId, requestUserId) => {
     throw new GraphQLError("Error when assign TODO to member");
   }
 
-  if (userId !== null) {
+  if (userId) {
     await requireMemberOfProject(userId, todo.project_id);
   }
-  const [todo2] = await sql`UPDATE todos SET assignee=${userId} WHERE id=${todo.id} RETURNING *`;
+  const [todo2] = await sql`UPDATE todos SET assignee=${userId ?? null} WHERE id=${todo.id} RETURNING *`;
   if (!todo2) {
     throw new GraphQLError("Todo 2 not found");
+  }
+  if (userId) {
+    pubSub.publish(ASSIGN_MEMBER_TODO, {
+      todoNotification: {
+        action: ASSIGN_MEMBER_TODO,
+        payload: todo2,
+      },
+    });
   }
   return todo2;
 };
@@ -88,6 +112,12 @@ const markDone = async (todoId, value, requestUserId) => {
   if (!todo) {
     throw new GraphQLError("Could not mark done");
   }
+  pubSub.publish(DONE_TODO, {
+    todoNotification: {
+      action: DONE_TODO,
+      payload: todo,
+    },
+  });
   return todo;
 };
 module.exports = {

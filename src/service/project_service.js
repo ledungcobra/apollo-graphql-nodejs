@@ -57,10 +57,31 @@ const findTodosByProjectId = async (projectId) => {
   return sql`SELECT * FROM todos WHERE project_id=${projectId}`;
 };
 
+const getProjectsByUserId = async (userId) => {
+  return sql`SELECT p.* FROM projects p join users_projects up ON p.id=up.project_id WHERE up.user_id=${userId}`;
+};
+
+const removeMember = async (userId, projectId, requestUserId) => {
+  if (userId === requestUserId) {
+    throw new GraphQLError("You cannot delete yourself");
+  }
+  const projects = await sql`SELECT 1 FROM projects p WHERE p.id=${projectId} AND p.manager_id=${requestUserId}`;
+  if (projects.length === 0) {
+    throw new GraphQLError("There is no project you manage");
+  }
+  const result = await sql`DELETE FROM users_projects WHERE user_id=${userId} AND project_id=${projectId} RETURNING *`;
+  if (result.length == 0) {
+    throw new GraphQLError("Could not delete user from the project");
+  }
+  return projects[0];
+};
+
 module.exports = {
   findMembers,
   findProjectById,
   createProject,
   addMember,
   findTodosByProjectId,
+  getProjectsByUserId,
+  removeMember,
 };
