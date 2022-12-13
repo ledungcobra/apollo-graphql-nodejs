@@ -33,6 +33,7 @@ module.exports = {
       created_user_id: extractUserId(headers),
     });
   },
+  login,
   deleteTodo: (_, { id }, { headers }) => deleteTodo(id, extractUserId(headers)),
   assignTodoProject: (_, { todoId, projectId }, { headers }) => assignTodoProject(todoId, projectId, extractUserId(headers)),
   assignTodoToMember: (_, { todoId, userId }, { headers }) => assignTodoToMember(todoId, userId, extractUserId(headers)),
