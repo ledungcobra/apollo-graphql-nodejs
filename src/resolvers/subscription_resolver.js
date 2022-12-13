@@ -1,9 +1,9 @@
 const { withFilter } = require("graphql-subscriptions");
-const pubSub = require("../pubsub/index");
-const { print, verifyToken } = require("../utils/utils");
 const actions = require("../pubsub/actions");
+const pubSub = require("../pubsub/index");
+const { print } = require("../utils/utils");
 
-const filterTodoOnAction = (action, todo, subUser) => {
+const canRunOnAction = (action, todo, subUser) => {
   print("Filter " + action);
   switch (action) {
     case actions.INSERT_TODO: {
@@ -28,31 +28,6 @@ const filterTodoOnAction = (action, todo, subUser) => {
   return false;
 };
 module.exports = {
-  test: {
-    subscribe: withFilter(
-      (...x) => {
-        print("Subscribe");
-        return pubSub.asyncIterator(["INSERTED_TODO"]);
-      },
-      (payload, { auth }, context, info, rest) => {
-        return true;
-      }
-    ),
-  },
-  countdown: {
-    subscribe: withFilter(
-      async function* (x, { from }, user) {
-        for (let i = from; i >= 0; i--) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          yield { countdown: i };
-        }
-      },
-      (payload, args, user, info) => {
-        return true;
-      }
-    ),
-  },
-
   todoNotification: {
     subscribe: withFilter(
       () => {
@@ -60,7 +35,7 @@ module.exports = {
         return pubSub.asyncIterator(acs);
       },
       (payload, args, user, info) => {
-        return filterTodoOnAction(payload.todoNotification.action, payload.todoNotification.payload, user);
+        return canRunOnAction(payload.todoNotification.action, payload.todoNotification.payload, user);
       }
     ),
   },

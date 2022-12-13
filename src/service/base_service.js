@@ -1,9 +1,8 @@
+const { GraphQLError } = require("graphql");
+const postgres = require("postgres");
 const { PGHOST, PGDATABASE, PGUSER, PGPASSWORD, ENDPOINT_ID } = process.env;
 
 const URL = `postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}/${PGDATABASE}?options=project%3D${ENDPOINT_ID}`;
-const { GraphQLError } = require("graphql");
-const postgres = require("postgres");
-const { print } = require("../utils/utils");
 
 const sql = postgres(URL, { ssl: "require" });
 
@@ -28,9 +27,4 @@ const requireMemberOfProject = async (userId, projectId) => {
   }
 };
 
-module.exports = {
-  sql,
-  requireProjectOwner,
-  requireOwnerTodo,
-  requireMemberOfProject,
-};
+module.exports = { sql, requireProjectOwner, requireOwnerTodo, requireMemberOfProject };

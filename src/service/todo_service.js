@@ -1,8 +1,7 @@
 const { GraphQLError } = require("graphql");
-const { INSERT_TODO, DELETE_TODO, ASSIGN_PRJECT_TODO, ASSIGN_MEMBER_TODO, DONE_TODO } = require("../pubsub/actions");
+const { ASSIGN_MEMBER_TODO, ASSIGN_PRJECT_TODO, DELETE_TODO, DONE_TODO, INSERT_TODO } = require("../pubsub/actions");
 const pubSub = require("../pubsub/index");
-const { print } = require("../utils/utils");
-const { sql, requireProjectOwner, requireMemberOfProject } = require("./base_service");
+const { requireMemberOfProject, requireProjectOwner, sql } = require("./base_service");
 
 const getTodosByUserId = (id) => {
   return sql`SELECT * FROM todos WHERE created_user_id=${id}`;
@@ -120,12 +119,4 @@ const markDone = async (todoId, value, requestUserId) => {
   });
   return todo;
 };
-module.exports = {
-  getTodosByUserId,
-  getTodoById,
-  insertTodo,
-  deleteTodo,
-  assignTodoProject,
-  assignTodoToMember,
-  markDone,
-};
+module.exports = { getTodosByUserId, getTodoById, insertTodo, deleteTodo, assignTodoProject, assignTodoToMember, markDone };

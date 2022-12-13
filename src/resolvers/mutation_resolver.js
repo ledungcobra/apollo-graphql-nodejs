@@ -1,11 +1,11 @@
-const { findUser, updateUserLastSeen, register } = require("../service/user_service");
 const bcrypt = require("bcrypt");
+const { assignTodoProject, assignTodoToMember, deleteTodo, markDone } = require("../service/todo_service");
+const { extractUserId, generateToken, print } = require("../utils/utils");
+const { findUser, register, updateUserLastSeen } = require("../service/user_service");
+const { addMember, createProjectt, removeMember } = require("../service/project_service");
+const { uploadToCloudinary } = require("../service/fileUploadService");
 const { GraphQLError } = require("graphql");
-const { print, extractUserId, generateToken } = require("../utils/utils");
-const { insertTodo, deleteTodo, assignTodoProject, assignTodoToMember, markDone } = require("../service/todo_service");
-const { createProject, addMember, removeMember } = require("../service/project_service");
-
-const _login = async (_, { user, password }) => {
+const login = async (_, { user, password }) => {
   const foundUser = await findUser(user);
   if (!foundUser) {
     throw new GraphQLError("User not found for user=" + user);
@@ -27,7 +27,6 @@ const _login = async (_, { user, password }) => {
 };
 
 module.exports = {
-  login: _login,
   addTodo: (a, { todo }, { headers }) => {
     return insertTodo({
       ...todo,
@@ -42,4 +41,5 @@ module.exports = {
   addMember: (_, { userId, projectId }, { headers }) => addMember(userId, projectId, extractUserId(headers)),
   removeMember: (_, { userId, projectId }, { headers }) => removeMember(userId, projectId, extractUserId(headers)),
   markDone: (_, { todoId, value }, { headers }) => markDone(todoId, value, extractUserId(headers)),
+  uploadAvatar: (parent, args, { headers }) => args.file.then((file) => uploadToCloudinary(file)),
 };

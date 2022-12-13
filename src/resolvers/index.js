@@ -1,15 +1,11 @@
-const todoResolver = require("./todo_resolver");
-const projectResolver = require("./project_resolver");
-const userResolver = require("./user_resolver");
-const queryResolver = require("./query_resolver");
-const mutationResolver = require("./mutation_resolver");
-const subscriptionResolver = require("./subscription_resolver");
-
-module.exports = {
-  Todo: todoResolver,
-  Project: projectResolver,
-  User: userResolver,
-  Query: queryResolver,
-  Mutation: mutationResolver,
-  Subscription: subscriptionResolver,
-};
+const Mutation = require("./mutation_resolver");
+const Project = require("./project_resolver");
+const Query = require("./query_resolver");
+const Subscription = require("./subscription_resolver");
+const Todo = require("./todo_resolver");
+const User = require("./user_resolver");
+async function loadResolvers(){
+  const Upload = await import("graphql-upload/GraphQLUpload.mjs")
+return { Todo, Project, User, Query, Mutation, Subscription, Upload };
+}
+module.exports = loadResolvers;

@@ -1,6 +1,6 @@
 const { findProjectById } = require("../service/project_service");
 const { findViewUser } = require("../service/user_service");
-const { print, extractUserId } = require("../utils/utils");
+const { extractUserId } = require("../utils/utils");
 
 module.exports = {
   createdUser: (todo) => {

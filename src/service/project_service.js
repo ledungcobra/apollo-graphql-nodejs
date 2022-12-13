@@ -1,6 +1,5 @@
 const { GraphQLError } = require("graphql");
-const { print } = require("../utils/utils");
-const { sql, requireMemberOfProject, requireProjectOwner } = require("./base_service");
+const { requireMemberOfProject, requireProjectOwner, sql } = require("./base_service");
 
 const findMembers = async (projectId, requestUserId) => {
   await requireMemberOfProject(requestUserId, projectId);
@@ -76,12 +75,4 @@ const removeMember = async (userId, projectId, requestUserId) => {
   return projects[0];
 };
 
-module.exports = {
-  findMembers,
-  findProjectById,
-  createProject,
-  addMember,
-  findTodosByProjectId,
-  getProjectsByUserId,
-  removeMember,
-};
+module.exports = { findMembers, findProjectById, createProject, addMember, findTodosByProjectId, getProjectsByUserId, removeMember };

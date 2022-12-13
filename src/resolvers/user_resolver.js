@@ -1,5 +1,4 @@
-const { findProjects, findTodosByUserId, findAssignedTodos } = require("../service/user_service");
-const { print } = require("../utils/utils");
+const { findAssignedTodos, findProjects, findTodosByUserId } = require("../service/user_service");
 
 module.exports = {
   projects: (user) => {
@@ -8,7 +7,7 @@ module.exports = {
   todos: (user) => {
     return findTodosByUserId(user.id);
   },
-  assigedTodos: (user) => {
+  assignedTodos: (user) => {
     return findAssignedTodos(user.id);
   },
 };

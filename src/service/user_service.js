@@ -1,5 +1,5 @@
-const { print, sql } = require("./base_service");
 const bcrypt = require("bcrypt");
+const { sql } = require("./base_service");
 
 const findViewUser = async (userId) => {
   if (!userId) {
@@ -16,7 +16,10 @@ const findUser = async (userId) => {
   if (res.length === 0) {
     return null;
   }
-  return res[0];
+  return {
+    avatarUrl: null,
+    ...res[0],
+  };
 };
 
 const findUserWithProjectId = async (userId) => {

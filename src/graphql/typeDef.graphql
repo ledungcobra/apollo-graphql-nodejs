@@ -22,9 +22,10 @@ type User {
   password: String
   created_at: String
   last_seen: String
+  avatarUrl: String
   projects: [Project]
   todos: [Todo]
-  assigedTodos: [Todo]
+  assignedTodos: [Todo]
 }
 
 type Query {
@@ -52,6 +53,7 @@ type Mutation {
 extend type Mutation {
   login(user: String, password: String): LoginResponse
   register(id: String, name: String, password: String): RegisterResponse
+  uploadAvatar(file: Upload!): File!
 }
 
 extend type Mutation {
@@ -59,6 +61,16 @@ extend type Mutation {
   addMember(userId: String, projectId: Int): Project
   removeMember(userId: String, projectId: Int): User
 }
+
+scalar Upload
+
+type File {
+  filename: String!
+  mimetype: String!
+  encoding: String!
+}
+
+
 
 type LoginResponse {
   user: User
@@ -77,8 +89,6 @@ input TodoInput {
 }
 
 type Subscription {
-  test(auth: String): String
-  countdown(from: Int!): Int
   todoNotification: TodoNotification
 }
 

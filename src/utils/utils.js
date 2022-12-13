@@ -1,8 +1,7 @@
-const jwt = require("jsonwebtoken");
 const fs = require("fs");
-const path = require("path");
 const { GraphQLError } = require("graphql");
-
+const jwt = require("jsonwebtoken");
+const path = require("path");
 const generateToken = (id) => {
   var token = jwt.sign({ data: { id }, exp: Math.floor(Date.now() / 1000) + 60 * 6000 }, process.env.JWT_SECRET, {
     algorithm: "HS512",
@@ -38,6 +37,6 @@ const extractUserId = (headers) => {
   return result.data.id;
 };
 
-
 const print = console.log;
 module.exports = { generateToken, verifyToken, print, readAllText, extractUserId };
+
