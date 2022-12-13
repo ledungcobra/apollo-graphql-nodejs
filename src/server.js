@@ -92,7 +92,15 @@ class ApolloGraphQLServer {
   async listen() {
     await this._server.start();
     const graphqlUploadExpress = await import("graphql-upload/graphqlUploadExpress.mjs");
-    this._app.use(graphqlUploadExpress.default());
+    this._app.use(
+      graphqlUploadExpress.default({
+        // maxFieldSize: 10000000000000,
+        // maxFiles: 1,
+      })
+    );
+    this._app.use((req,res, next)=>{
+      return next();
+    })
     this._app.use(
       "/graphql",
       cors(),

@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const { assignTodoProject, assignTodoToMember, deleteTodo, markDone } = require("../service/todo_service");
 const { extractUserId, generateToken, print } = require("../utils/utils");
 const { findUser, register, updateUserLastSeen } = require("../service/user_service");
-const { addMember, createProjectt, removeMember } = require("../service/project_service");
+const { addMember, createProject, removeMember } = require("../service/project_service");
 const { uploadToCloudinary } = require("../service/fileUploadService");
 const { GraphQLError } = require("graphql");
 const login = async (_, { user, password }) => {
@@ -42,5 +42,10 @@ module.exports = {
   addMember: (_, { userId, projectId }, { headers }) => addMember(userId, projectId, extractUserId(headers)),
   removeMember: (_, { userId, projectId }, { headers }) => removeMember(userId, projectId, extractUserId(headers)),
   markDone: (_, { todoId, value }, { headers }) => markDone(todoId, value, extractUserId(headers)),
-  uploadAvatar: (parent, args, { headers }) => args.file.then((file) => uploadToCloudinary(file)),
+  uploadAvatar: async (parent, { file }, { headers }) => {
+    const { createReadStream, filename, mimetype, encoding } = await file.file;
+    print(filename);
+    const stream = createReadStream();
+    return await uploadToCloudinary(stream);
+  },
 };
